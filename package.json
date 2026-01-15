@@ -10,6 +10,14 @@
     "files": [
         "dist"
     ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/NakiriYuuzu/oc-usage.git"
+    },
+    "homepage": "https://github.com/NakiriYuuzu/oc-usage#readme",
+    "bugs": {
+        "url": "https://github.com/NakiriYuuzu/oc-usage/issues"
+    },
     "scripts": {
         "dev": "bun --watch src/index.ts",
         "start": "bun run src/index.ts",
