@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import type { ProviderResult } from './types'
 import { antigravityProvider } from './providers/antigravity'
 import { copilotProvider } from './providers/copilot'
+import { claudeProvider } from './providers/claude'
 import { renderAll, renderProvider, renderTitle, renderJson } from './ui/render'
 import { startWatchMode } from './ui/watch'
 
@@ -24,7 +25,7 @@ program
 // Default command - show all providers
 program
     .action(async (options) => {
-        const providers = [antigravityProvider, copilotProvider]
+        const providers = [antigravityProvider, copilotProvider, claudeProvider]
 
         const fetchAll = async (): Promise<ProviderResult[]> => {
             return Promise.all(providers.map(p => p.fetch()))
@@ -60,8 +61,9 @@ program
     .option('-w, --watch', 'Watch mode - auto refresh')
     .option('-i, --interval <seconds>', 'Refresh interval in seconds', '30')
     .option('-j, --json', 'Output as JSON')
-    .action(async (options) => {
-        if (options.json) {
+    .action(async (options, command) => {
+        const jsonFlag = command.opts().json || options?.json || process.argv.includes('-j') || process.argv.includes('--json')
+        if (jsonFlag) {
             const result = await antigravityProvider.fetch()
             renderJson([result])
             return
@@ -93,8 +95,9 @@ const copilotCmd = program
     .option('-w, --watch', 'Watch mode - auto refresh')
     .option('-i, --interval <seconds>', 'Refresh interval in seconds', '30')
     .option('-j, --json', 'Output as JSON')
-    .action(async (options) => {
-        if (options.json) {
+    .action(async (options, command) => {
+        const jsonFlag = command.opts().json || options?.json || process.argv.includes('-j') || process.argv.includes('--json')
+        if (jsonFlag) {
             const result = await copilotProvider.fetch()
             renderJson([result])
             return
@@ -129,6 +132,40 @@ copilotCmd
             console.error(chalk.red('Authentication failed:'), error instanceof Error ? error.message : String(error))
             process.exit(1)
         }
+    })
+
+// Claude subcommand
+program
+    .command('claude')
+    .alias('cl')
+    .description('Show only Claude usage')
+    .option('-w, --watch', 'Watch mode - auto refresh')
+    .option('-i, --interval <seconds>', 'Refresh interval in seconds', '30')
+    .option('-j, --json', 'Output as JSON')
+    .action(async (options, command) => {
+        const jsonFlag = command.opts().json || options?.json || process.argv.includes('-j') || process.argv.includes('--json')
+        if (jsonFlag) {
+            const result = await claudeProvider.fetch()
+            renderJson([result])
+            return
+        }
+
+        if (options.watch) {
+            const interval = parseInt(options.interval, 10)
+            await startWatchMode({
+                interval,
+                onRefresh: async () => {
+                    const result = await claudeProvider.fetch()
+                    renderTitle()
+                    renderProvider(result)
+                }
+            })
+            return
+        }
+
+        const result = await claudeProvider.fetch()
+        renderTitle()
+        renderProvider(result)
     })
 
 // Parse arguments
