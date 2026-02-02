@@ -109,3 +109,20 @@ export interface CopilotAccessTokenResponse {
     scope: string
 }
 
+// Claude types
+export interface ClaudeCredentialsFile {
+    claudeAiOauth?: {
+        accessToken?: string
+    }
+}
+
+export interface ClaudeQuotaWindow {
+    utilization: number  // 0-100 percentage used
+    resets_at: string    // ISO 8601 timestamp
+}
+
+export interface ClaudeUsageResponse {
+    seven_day?: ClaudeQuotaWindow
+    five_hour?: ClaudeQuotaWindow
+}
+
