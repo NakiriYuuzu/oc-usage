@@ -13,6 +13,8 @@ jobs:
     release:
         name: Build & Publish
         runs-on: ubuntu-latest
+        env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
         steps:
             - name: Checkout
@@ -52,10 +54,17 @@ jobs:
                   await Bun.write('package.json', JSON.stringify(pkg, null, 4));
                   "
 
+            - name: Debug token presence
+              run: |
+                  if [ -n "$NODE_AUTH_TOKEN" ]; then
+                    echo "✅ NODE_AUTH_TOKEN is set (length: ${#NODE_AUTH_TOKEN})"
+                  else
+                    echo "❌ NODE_AUTH_TOKEN is empty or not set"
+                    exit 1
+                  fi
+
             - name: Publish to npm
               run: npm publish --provenance --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v2
