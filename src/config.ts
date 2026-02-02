@@ -7,6 +7,9 @@ export const PATHS = {
     // Antigravity config (read-only, managed by opencode)
     ANTIGRAVITY_ACCOUNTS: join(homedir(), '.config', 'opencode', 'antigravity-accounts.json'),
 
+    // Claude credentials
+    CLAUDE_CREDENTIALS: join(homedir(), '.claude', '.credentials.json'),
+
     // Our config directory
     CONFIG_DIR: join(homedir(), '.config', 'ai-usage'),
 
@@ -28,6 +31,19 @@ export async function readCopilotToken(): Promise<string | null> {
         return null
     }
 }
+
+// Read Claude token
+export async function readClaudeToken(): Promise<string | null> {
+    try {
+        const content = await readFile(PATHS.CLAUDE_CREDENTIALS, 'utf-8')
+        const data = JSON.parse(content)
+        return data.claudeAiOauth?.accessToken || null
+    } catch {
+        // Fallback to environment variable
+        return process.env.ANTHROPIC_API_KEY || null
+    }
+}
+
 
 // Write Copilot token
 export async function writeCopilotToken(token: string): Promise<void> {
@@ -52,5 +68,11 @@ export const COPILOT_API = {
     SCOPES: 'read:user',
     USER_AGENT: 'GitHubCopilotChat/0.26.7',
     API_VERSION: '2025-04-01'
+}
+
+export const CLAUDE_API = {
+    ENDPOINT: 'https://api.anthropic.com/api/oauth/usage',
+    USER_AGENT: 'claude-code/2.1.5',
+    BETA_HEADER: 'oauth-2025-04-20'
 }
 

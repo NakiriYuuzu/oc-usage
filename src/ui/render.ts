@@ -12,7 +12,7 @@ import {
 } from './box'
 import { createProgressBar, formatResetTime } from './progress'
 
-const BOX_WIDTH = 60
+const BOX_WIDTH = 65
 const CONTENT_WIDTH = BOX_WIDTH - 4  // Account for borders and padding
 
 // Get provider color

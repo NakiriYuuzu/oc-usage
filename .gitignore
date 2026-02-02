@@ -4,3 +4,4 @@ bun.lock
 *.log
 .idea/
 .DS_Store
+.sisyphus/
