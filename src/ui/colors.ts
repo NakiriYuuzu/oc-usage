@@ -20,7 +20,8 @@ export const colors = {
 
     // Provider-specific colors
     antigravity: chalk.hex('#4285F4'),  // Google Blue
-    copilot: chalk.hex('#6E40C9')       // GitHub Purple
+    copilot: chalk.hex('#6E40C9'),      // GitHub Purple
+    claude: chalk.hex('#DA7756')        // Claude Terracotta
 }
 
 // Get color based on percentage (remaining quota)

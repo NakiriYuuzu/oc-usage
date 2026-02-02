@@ -20,6 +20,7 @@ function getProviderColor(provider: string): (text: string) => string {
     switch (provider) {
         case 'antigravity': return colors.antigravity
         case 'copilot': return colors.copilot
+        case 'claude': return colors.claude
         default: return colors.cyan
     }
 }
