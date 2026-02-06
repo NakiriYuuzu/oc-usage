@@ -126,3 +126,50 @@ export interface ClaudeUsageResponse {
     five_hour?: ClaudeQuotaWindow
 }
 
+// OpenCode auth types (for Codex provider)
+export interface OpencodeOauthAuth {
+    type: 'oauth'
+    access: string
+    refresh: string
+    expires: number
+    enterpriseUrl?: string
+}
+
+export interface OpencodeApiAuth {
+    type: 'api'
+    key: string
+}
+
+export interface OpencodeWellKnownAuth {
+    type: 'wellknown'
+    key: string
+    token: string
+}
+
+export type OpencodeAuthInfo = OpencodeOauthAuth | OpencodeApiAuth | OpencodeWellKnownAuth
+export type OpencodeAuthFile = Record<string, OpencodeAuthInfo>
+
+// Codex usage types
+export interface CodexRateLimitWindow {
+    used_percent?: number
+    limit_window_seconds?: number
+    reset_after_seconds?: number
+    reset_at?: number
+}
+
+export interface CodexRateLimitInfo {
+    primary_window?: CodexRateLimitWindow | null
+    secondary_window?: CodexRateLimitWindow | null
+}
+
+export interface CodexCreditsInfo {
+    unlimited?: boolean
+    balance?: string | number | null
+}
+
+export interface CodexUsageResponse {
+    plan_type?: string
+    rate_limit?: CodexRateLimitInfo | null
+    credits?: CodexCreditsInfo | null
+}
+

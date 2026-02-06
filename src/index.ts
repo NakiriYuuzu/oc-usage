@@ -6,6 +6,7 @@ import type { ProviderResult } from './types'
 import { antigravityProvider } from './providers/antigravity'
 import { copilotProvider } from './providers/copilot'
 import { claudeProvider } from './providers/claude'
+import { codexProvider } from './providers/codex'
 import { renderAll, renderProvider, renderTitle, renderJson } from './ui/render'
 import { startWatchMode } from './ui/watch'
 
@@ -25,7 +26,7 @@ program
 // Default command - show all providers
 program
     .action(async (options) => {
-        const providers = [antigravityProvider, copilotProvider, claudeProvider]
+        const providers = [antigravityProvider, copilotProvider, claudeProvider, codexProvider]
 
         const fetchAll = async (): Promise<ProviderResult[]> => {
             return Promise.all(providers.map(p => p.fetch()))
@@ -164,6 +165,40 @@ program
         }
 
         const result = await claudeProvider.fetch()
+        renderTitle()
+        renderProvider(result)
+    })
+
+// Codex subcommand
+program
+    .command('codex')
+    .alias('cx')
+    .description('Show only Codex usage')
+    .option('-w, --watch', 'Watch mode - auto refresh')
+    .option('-i, --interval <seconds>', 'Refresh interval in seconds', '30')
+    .option('-j, --json', 'Output as JSON')
+    .action(async (options, command) => {
+        const jsonFlag = command.opts().json || options?.json || process.argv.includes('-j') || process.argv.includes('--json')
+        if (jsonFlag) {
+            const result = await codexProvider.fetch()
+            renderJson([result])
+            return
+        }
+
+        if (options.watch) {
+            const interval = parseInt(options.interval, 10)
+            await startWatchMode({
+                interval,
+                onRefresh: async () => {
+                    const result = await codexProvider.fetch()
+                    renderTitle()
+                    renderProvider(result)
+                }
+            })
+            return
+        }
+
+        const result = await codexProvider.fetch()
         renderTitle()
         renderProvider(result)
     })

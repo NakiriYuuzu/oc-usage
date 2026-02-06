@@ -1,6 +1,34 @@
-import { homedir } from 'os'
+import { homedir, platform } from 'os'
 import { join } from 'path'
 import { mkdir, readFile, writeFile } from 'fs/promises'
+
+function getOpencodeDataDir(): string {
+    const home = homedir()
+
+    if (platform() === 'win32') {
+        return process.env.APPDATA
+            ? join(process.env.APPDATA, 'opencode')
+            : join(home, 'AppData', 'Roaming', 'opencode')
+    }
+
+    return process.env.XDG_DATA_HOME
+        ? join(process.env.XDG_DATA_HOME, 'opencode')
+        : join(home, '.local', 'share', 'opencode')
+}
+
+function getOpencodeConfigDir(): string {
+    const home = homedir()
+
+    if (platform() === 'win32') {
+        return process.env.APPDATA
+            ? join(process.env.APPDATA, 'opencode')
+            : join(home, 'AppData', 'Roaming', 'opencode')
+    }
+
+    return process.env.XDG_CONFIG_HOME
+        ? join(process.env.XDG_CONFIG_HOME, 'opencode')
+        : join(home, '.config', 'opencode')
+}
 
 // Config paths
 export const PATHS = {
@@ -15,6 +43,10 @@ export const PATHS = {
 
     // Copilot token
     COPILOT_TOKEN: join(homedir(), '.config', 'ai-usage', 'copilot-token'),
+
+    // OpenCode auth (for Codex)
+    OPENCODE_AUTH: join(getOpencodeDataDir(), 'auth.json'),
+    OPENCODE_AUTH_FALLBACK: join(getOpencodeConfigDir(), 'auth.json')
 
 }
 
@@ -74,5 +106,11 @@ export const CLAUDE_API = {
     ENDPOINT: 'https://api.anthropic.com/api/oauth/usage',
     USER_AGENT: 'claude-code/2.1.5',
     BETA_HEADER: 'oauth-2025-04-20'
+}
+
+export const CODEX_API = {
+    DEFAULT_BASE_URL: 'https://chatgpt.com/backend-api',
+    REQUEST_TIMEOUT_MS: 15000,
+    MAX_ERROR_BODY_CHARS: 2000
 }
 
