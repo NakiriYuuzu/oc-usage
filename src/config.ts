@@ -41,10 +41,19 @@ export const PATHS = {
     // Our config directory
     CONFIG_DIR: join(homedir(), '.config', 'ai-usage'),
 
+    // App config file
+    APP_CONFIG: join(homedir(), '.config', 'ai-usage', 'config.json'),
+
     // Copilot token
     COPILOT_TOKEN: join(homedir(), '.config', 'ai-usage', 'copilot-token'),
 
-    // OpenCode auth (for Codex)
+    // Gemini native credentials
+    GEMINI_OAUTH_CREDS: join(homedir(), '.gemini', 'oauth_creds.json'),
+
+    // Codex native auth
+    CODEX_NATIVE_AUTH: join(homedir(), '.codex', 'auth.json'),
+
+    // OpenCode auth (fallback for Codex)
     OPENCODE_AUTH: join(getOpencodeDataDir(), 'auth.json'),
     OPENCODE_AUTH_FALLBACK: join(getOpencodeConfigDir(), 'auth.json')
 
@@ -88,9 +97,34 @@ export async function writeCopilotToken(token: string): Promise<void> {
 export const ANTIGRAVITY_API = {
     ENDPOINT: 'https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels',
     USER_AGENT: 'antigravity/1.11.3 Darwin/arm64',
-    OAUTH_CLIENT_ID: '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com',
-    OAUTH_CLIENT_SECRET: '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',
     TOKEN_ENDPOINT: 'https://oauth2.googleapis.com/token'
+}
+
+// Read Antigravity OAuth credentials from config file or env vars
+export async function readAntigravityOAuth(): Promise<{ clientId: string, clientSecret: string } | null> {
+    // Priority 1: Environment variables
+    if (process.env.ANTIGRAVITY_OAUTH_CLIENT_ID && process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET) {
+        return {
+            clientId: process.env.ANTIGRAVITY_OAUTH_CLIENT_ID,
+            clientSecret: process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET
+        }
+    }
+
+    // Priority 2: Config file (~/.config/ai-usage/config.json)
+    try {
+        const content = await readFile(PATHS.APP_CONFIG, 'utf-8')
+        const config = JSON.parse(content)
+        if (config?.antigravity?.oauthClientId && config?.antigravity?.oauthClientSecret) {
+            return {
+                clientId: config.antigravity.oauthClientId,
+                clientSecret: config.antigravity.oauthClientSecret
+            }
+        }
+    } catch {
+        // Config file not found
+    }
+
+    return null
 }
 
 export const COPILOT_API = {

@@ -9,7 +9,8 @@ import type {
     OpencodeOauthAuth,
     CodexUsageResponse,
     CodexRateLimitWindow,
-    CodexCreditsInfo
+    CodexCreditsInfo,
+    CodexNativeAuth
 } from '../types'
 
 interface OauthSelection {
@@ -25,15 +26,8 @@ export class CodexProvider extends BaseProvider {
 
     async fetch(): Promise<ProviderResult> {
         try {
-            const auth = await this.readAuthFile()
-            const oauth = this.pickOauthAuth(auth)
-
-            if (!oauth) {
-                return this.createErrorResult('Codex OAuth credentials missing in OpenCode auth.json')
-            }
-
-            const baseUrl = process.env.OPENCODE_CODEX_BASE_URL || oauth.enterpriseUrl || CODEX_API.DEFAULT_BASE_URL
-            const usage = await this.fetchUsage(oauth.access, baseUrl)
+            const { accessToken, baseUrl } = await this.resolveAuth()
+            const usage = await this.fetchUsage(accessToken, baseUrl)
             const account = this.processUsageData(usage)
 
             return {
@@ -47,11 +41,59 @@ export class CodexProvider extends BaseProvider {
 
             if (message.includes('401') || message.includes('403') || message.includes('Unauthorized')) {
                 return this.createErrorResult(
-                    'Session expired. Please re-authenticate OpenCode to refresh Codex token.'
+                    'Session expired. Please re-authenticate Codex or OpenCode.'
                 )
             }
 
             return this.createErrorResult(message)
+        }
+    }
+
+    private async resolveAuth(): Promise<{ accessToken: string, baseUrl: string }> {
+        // Priority 1: Native Codex auth (~/.codex/auth.json)
+        const nativeToken = await this.tryReadNativeAuth()
+        if (nativeToken) {
+            return {
+                accessToken: nativeToken,
+                baseUrl: process.env.OPENCODE_CODEX_BASE_URL || CODEX_API.DEFAULT_BASE_URL
+            }
+        }
+
+        // Priority 2: OpenCode auth (fallback)
+        let auth: OpencodeAuthFile
+        try {
+            auth = await this.readAuthFile()
+        } catch {
+            throw new Error(
+                `Codex credentials not found. Checked: ${PATHS.CODEX_NATIVE_AUTH}, ${PATHS.OPENCODE_AUTH}`
+            )
+        }
+
+        const oauth = this.pickOauthAuth(auth)
+        if (!oauth) {
+            throw new Error(
+                'Codex OAuth credentials not found in ~/.codex/auth.json or OpenCode auth.json'
+            )
+        }
+
+        return {
+            accessToken: oauth.access,
+            baseUrl: process.env.OPENCODE_CODEX_BASE_URL || oauth.enterpriseUrl || CODEX_API.DEFAULT_BASE_URL
+        }
+    }
+
+    private async tryReadNativeAuth(): Promise<string | null> {
+        try {
+            const content = await readFile(PATHS.CODEX_NATIVE_AUTH, 'utf-8')
+            const data = JSON.parse(content) as CodexNativeAuth
+
+            if (data.tokens?.access_token) {
+                return data.tokens.access_token
+            }
+
+            return null
+        } catch {
+            return null
         }
     }
 

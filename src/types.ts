@@ -173,3 +173,26 @@ export interface CodexUsageResponse {
     credits?: CodexCreditsInfo | null
 }
 
+// Gemini native OAuth credentials (~/.gemini/oauth_creds.json)
+export interface GeminiOAuthCreds {
+    access_token: string
+    refresh_token: string
+    scope: string
+    token_type: string
+    id_token: string
+    expiry_date: number
+}
+
+// Codex native auth (~/.codex/auth.json)
+export interface CodexNativeAuth {
+    auth_mode: string
+    OPENAI_API_KEY: string | null
+    tokens: {
+        id_token: string
+        access_token: string
+        refresh_token: string
+        account_id: string
+    }
+    last_refresh: string
+}
+
