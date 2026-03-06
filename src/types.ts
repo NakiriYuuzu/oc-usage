@@ -183,6 +183,76 @@ export interface GeminiOAuthCreds {
     expiry_date: number
 }
 
+// Gemini CLI Code Assist types
+export interface GeminiClientMetadata {
+    ideType?: string
+    ideVersion?: string
+    pluginVersion?: string
+    platform?: string
+}
+
+export interface GeminiLoadCodeAssistRequest {
+    cloudaicompanionProject?: string
+    metadata: GeminiClientMetadata
+}
+
+export interface GeminiUserTier {
+    id?: string
+    name?: string
+    description?: string
+    isDefault?: boolean
+    hasOnboardedPreviously?: boolean
+}
+
+export interface GeminiLoadCodeAssistResponse {
+    currentTier?: GeminiUserTier | null
+    allowedTiers?: GeminiUserTier[] | null
+    paidTier?: GeminiUserTier | null
+    cloudaicompanionProject?: string | null
+}
+
+export interface GeminiOnboardUserRequest {
+    tierId: string | undefined
+    cloudaicompanionProject: string | undefined
+    metadata: GeminiClientMetadata | undefined
+}
+
+export interface GeminiOnboardUserResponse {
+    cloudaicompanionProject?: {
+        id?: string
+        name?: string
+    }
+}
+
+export interface GeminiLongRunningOperation {
+    name?: string
+    done?: boolean
+    response?: GeminiOnboardUserResponse
+}
+
+export interface GeminiRetrieveUserQuotaRequest {
+    project: string
+}
+
+export interface GeminiBucketInfo {
+    remainingAmount?: string
+    remainingFraction?: number
+    resetTime?: string
+    tokenType?: string
+    modelId?: string
+}
+
+export interface GeminiRetrieveUserQuotaResponse {
+    buckets?: GeminiBucketInfo[]
+}
+
+export interface GeminiTokenRefreshResponse {
+    access_token: string
+    expires_in: number
+    scope: string
+    token_type: string
+}
+
 // Codex native auth (~/.codex/auth.json)
 export interface CodexNativeAuth {
     auth_mode: string

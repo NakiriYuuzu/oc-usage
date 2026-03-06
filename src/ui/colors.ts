@@ -22,7 +22,8 @@ export const colors = {
     antigravity: chalk.hex('#4285F4'),  // Google Blue
     copilot: chalk.hex('#6E40C9'),      // GitHub Purple
     claude: chalk.hex('#DA7756'),       // Claude Terracotta
-    codex: chalk.hex('#19C37D')         // Codex Green
+    codex: chalk.hex('#19C37D'),         // Codex Green
+    gemini: chalk.hex('#886FBF')         // Gemini Purple
 }
 
 // Get color based on percentage (remaining quota)

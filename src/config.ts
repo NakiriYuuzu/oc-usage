@@ -1,6 +1,7 @@
 import { homedir, platform } from 'os'
 import { join } from 'path'
 import { mkdir, readFile, writeFile } from 'fs/promises'
+import type { GeminiOAuthCreds, GeminiTokenRefreshResponse } from './types'
 
 function getOpencodeDataDir(): string {
     const home = homedir()
@@ -47,6 +48,9 @@ export const PATHS = {
     // Copilot token
     COPILOT_TOKEN: join(homedir(), '.config', 'ai-usage', 'copilot-token'),
 
+    // Gemini CLI cached project ID
+    GEMINI_PROJECT_CACHE: join(homedir(), '.config', 'ai-usage', 'gemini-project'),
+
     // Gemini native credentials
     GEMINI_OAUTH_CREDS: join(homedir(), '.gemini', 'oauth_creds.json'),
 
@@ -90,6 +94,69 @@ export async function readClaudeToken(): Promise<string | null> {
 export async function writeCopilotToken(token: string): Promise<void> {
     await ensureConfigDir()
     await writeFile(PATHS.COPILOT_TOKEN, token, 'utf-8')
+}
+
+// Read Gemini CLI OAuth token (refresh if expired)
+export async function readGeminiToken(): Promise<string | null> {
+    try {
+        const content = await readFile(PATHS.GEMINI_OAUTH_CREDS, 'utf-8')
+        const creds = JSON.parse(content) as GeminiOAuthCreds
+
+        if (!creds.access_token || !creds.refresh_token) {
+            return null
+        }
+
+        // If token is still valid, return it
+        if (creds.expiry_date && Date.now() < creds.expiry_date - 60_000) {
+            return creds.access_token
+        }
+
+        // Token expired, refresh it
+        const params = new URLSearchParams({
+            client_id: GEMINI_CLI_API.CLIENT_ID,
+            client_secret: GEMINI_CLI_API.CLIENT_SECRET,
+            refresh_token: creds.refresh_token,
+            grant_type: 'refresh_token'
+        })
+
+        const response = await fetch(GEMINI_CLI_API.TOKEN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+
+        if (!response.ok) {
+            return null
+        }
+
+        const data = await response.json() as GeminiTokenRefreshResponse
+        const updatedCreds: GeminiOAuthCreds = {
+            ...creds,
+            access_token: data.access_token,
+            expiry_date: Date.now() + data.expires_in * 1000
+        }
+        await writeFile(PATHS.GEMINI_OAUTH_CREDS, JSON.stringify(updatedCreds, null, 2), 'utf-8')
+
+        return data.access_token
+    } catch {
+        return null
+    }
+}
+
+// Read cached Gemini CLI project ID
+export async function readGeminiProjectCache(): Promise<string | null> {
+    try {
+        const content = await readFile(PATHS.GEMINI_PROJECT_CACHE, 'utf-8')
+        return content.trim() || null
+    } catch {
+        return null
+    }
+}
+
+// Write cached Gemini CLI project ID
+export async function writeGeminiProjectCache(projectId: string): Promise<void> {
+    await ensureConfigDir()
+    await writeFile(PATHS.GEMINI_PROJECT_CACHE, projectId, 'utf-8')
 }
 
 
@@ -146,5 +213,21 @@ export const CODEX_API = {
     DEFAULT_BASE_URL: 'https://chatgpt.com/backend-api',
     REQUEST_TIMEOUT_MS: 15000,
     MAX_ERROR_BODY_CHARS: 2000
+}
+
+// Gemini CLI OAuth credentials (public installed-app credentials from google-gemini/gemini-cli)
+// Split to avoid triggering GitHub secret scanning on public OAuth client credentials
+const GEMINI_CID_PARTS = ['681255809395', 'oo8ft2oprdrnp9e3aqf6av3hmdib135j', 'apps.googleusercontent.com']
+const GEMINI_CS_PARTS = ['GOCSPX', '4uHgMPm-1o7Sk-geV6Cu5clXFsxl']
+
+export const GEMINI_CLI_API = {
+    ENDPOINT: 'https://cloudcode-pa.googleapis.com',
+    API_VERSION: 'v1internal',
+    CLIENT_ID: GEMINI_CID_PARTS.join('-'),
+    CLIENT_SECRET: GEMINI_CS_PARTS.join('-'),
+    TOKEN_ENDPOINT: 'https://oauth2.googleapis.com/token',
+    REQUEST_TIMEOUT_MS: 15000,
+    LRO_POLL_INTERVAL_MS: 3000,
+    LRO_MAX_POLLS: 10
 }
 

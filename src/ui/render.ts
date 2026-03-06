@@ -22,6 +22,7 @@ function getProviderColor(provider: string): (text: string) => string {
         case 'copilot': return colors.copilot
         case 'claude': return colors.claude
         case 'codex': return colors.codex
+        case 'gemini': return colors.gemini
         default: return colors.cyan
     }
 }

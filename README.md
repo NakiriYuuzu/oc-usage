@@ -7,6 +7,7 @@ CLI tool to monitor AI platform usage quotas with a pretty terminal UI.
 - **Antigravity** (Google Cloud Code/IDX) usage monitoring
 - **GitHub Copilot** usage monitoring
 - **Claude** (Anthropic) usage monitoring
+- **Gemini CLI** (Google) usage monitoring
 - Pretty terminal UI with box drawing
 - Watch mode with auto-refresh
 - JSON output for scripting
@@ -34,6 +35,7 @@ oc-usage
 oc-usage ag          # Antigravity
 oc-usage cp          # GitHub Copilot
 oc-usage cl          # Claude
+oc-usage gm          # Gemini CLI
 
 # Watch mode (auto-refresh every 30s)
 oc-usage -w
@@ -65,6 +67,12 @@ Reads OAuth token from `~/.claude/.credentials.json` (managed by Claude CLI).
 
 Alternatively, set the `ANTHROPIC_API_KEY` environment variable.
 
+### Gemini CLI
+
+Reads OAuth credentials from `~/.gemini/oauth_creds.json` (managed by Gemini CLI).
+
+Optionally set `GOOGLE_CLOUD_PROJECT` environment variable for explicit project ID.
+
 ## Screenshot
 
 ```
@@ -89,6 +97,12 @@ Alternatively, set the `ANTHROPIC_API_KEY` environment variable.
 │                                                               │
 │ Weekly         ██████████░░░░░░      63.0%  3 days            │
 │ Daily          ████████████░░░░      76.0%  3h                │
+╰───────────────────────────────────────────────────────────────╯
+╭── Gemini CLI ─────────────────────────────────────────────────╮
+│                                                               │
+│ 2.5-pro        ██████████░░░░░░      65.0%  1 day             │
+│ 2.5-flash      ████████████████     100.0%  1 day             │
+│ 3-pro          ████████████████     100.0%  1 day             │
 ╰───────────────────────────────────────────────────────────────╯
 ```
 
