@@ -16,7 +16,7 @@ const program = new Command()
 program
     .name('oc-usage')
     .description('Monitor AI platform usage quotas')
-    .version('1.3.0')
+    .version('1.4.0')
 
 // Global options
 program
